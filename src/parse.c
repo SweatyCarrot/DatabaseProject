@@ -77,3 +77,28 @@ int validate_dbheader(int fd, struct dbheader_t **dbheaderOut)
 
 	return STATUS_SUCCESS;
 }
+
+void output_file(int fd, struct dbheader_t *header)
+{
+	if (fd < 0) {
+		printf("output_file() got a bad file descriptor.\n");
+		return;
+	}
+
+	header->sig = htonl(header->sig);
+	header->version = htons(header->version);
+	header->count = htons(header->count);
+	header->filesize = htonl(header->filesize);
+
+	if (lseek(fd, 0, SEEK_SET) != 0) {
+		perror("lseek");
+		return;
+	}
+
+	if (write(fd, header, sizeof(struct dbheader_t)) == -1) {
+		perror("write");
+		return;
+	}
+
+	return;
+}

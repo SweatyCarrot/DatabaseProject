@@ -18,5 +18,7 @@ struct employee_t {
 
 int create_dbheader(struct dbheader_t **dbheaderOut);
 int validate_dbheader(int fd, struct dbheader_t **dbheaderOut);
+//int read_employees()
+void output_file(int fd, struct dbheader_t *dbheader);
 
 #endif

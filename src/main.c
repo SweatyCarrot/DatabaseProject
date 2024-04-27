@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
 			printf("Failed to create database header\n");
 			return STATUS_ERROR;
 		}
+		output_file(dbfd, dbheader);
 
 	} else {
 		dbfd = open_db_file(file_path);
