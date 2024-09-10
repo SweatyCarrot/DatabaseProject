@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
@@ -78,26 +79,98 @@ int validate_dbheader(int fd, struct dbheader_t **dbheaderOut)
 	return STATUS_SUCCESS;
 }
 
-void output_file(int fd, struct dbheader_t *header)
+int read_employees(int fd, struct dbheader_t *dbheader, struct employee_t **employeesOut)
+{
+	if (fd < 0) {
+		printf("output_file() got a bad file descriptor.\n");
+		return STATUS_ERROR;
+	}
+
+	int count = dbheader->count;
+
+	struct employee_t *employees = calloc(count, sizeof(struct employee_t));
+	if (employees == NULL) {
+		printf("Malloc failed to allocate for employees.\n");
+		perror("malloc");
+		return STATUS_ERROR;
+	}
+
+	read(fd, employees, count*sizeof(struct employee_t));
+	int i;
+	for (i = 0; i < count; ++i) {
+		employees[i].hours = ntohl(employees[i].hours);
+	}
+
+	*employeesOut = employees;
+	return STATUS_SUCCESS;
+}
+
+int add_employee(char *add_string, struct dbheader_t *dbheader, struct employee_t *employees)
+{
+	
+	char *name = strtok(add_string, ",");
+	char *address = strtok(NULL, ",");
+	char *hours = strtok(NULL, ",");
+	strncpy(employees[dbheader->count-1].name, name, sizeof(employees[dbheader->count-1].name));
+	strncpy(employees[dbheader->count-1].address, address, sizeof(employees[dbheader->count-1].address));
+	//TODO: Make this safer?
+	employees[dbheader->count-1].hours = atoi(hours);
+	
+	printf("Added employee\n");
+	return STATUS_SUCCESS;
+}
+
+
+int list_employees(struct dbheader_t *dbheader, struct employee_t *employees)
+{
+	if (dbheader->count == 0) {
+		printf("No employees to list!\n");
+		return STATUS_ERROR;
+	}
+
+	int i;
+	for (i = 0; i < dbheader->count; i++) {
+		printf("Employee %d - Name: %s\t| Address: %s\t| Hours: %d\n", i+1, employees[i].name, employees[i].address, employees[i].hours);
+	}
+	return STATUS_SUCCESS;
+}
+
+void output_file(int fd, struct dbheader_t *header, struct employee_t *employees)
 {
 	if (fd < 0) {
 		printf("output_file() got a bad file descriptor.\n");
 		return;
 	}
 
+	int real_count = header->count;
+
 	header->sig = htonl(header->sig);
 	header->version = htons(header->version);
 	header->count = htons(header->count);
-	header->filesize = htonl(header->filesize);
+	header->filesize = htonl(sizeof(struct dbheader_t) + (sizeof(struct employee_t) * real_count));
+
 
 	if (lseek(fd, 0, SEEK_SET) != 0) {
 		perror("lseek");
 		return;
 	}
 
+	//WRITE HEADER
 	if (write(fd, header, sizeof(struct dbheader_t)) == -1) {
 		perror("write");
 		return;
+	}
+
+	//WRITE EMPLOYEES
+	if (employees == NULL) {
+		printf("No employees read. Exiting.\n");
+		return;
+	}
+
+	int i;
+	for(i = 0; i < real_count; ++i) {
+		employees[i].hours = htonl(employees[i].hours);
+		write(fd, &employees[i], sizeof(struct employee_t));
 	}
 
 	return;

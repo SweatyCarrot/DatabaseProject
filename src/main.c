@@ -16,17 +16,34 @@ void print_usage(char *argv[])
 
 int main(int argc, char *argv[])
 {
-	
-	int opt = 0;
-	bool new_file = false;
-	char *file_path = NULL;
 	int dbfd = -1;
 	struct dbheader_t *dbheader = NULL;
+	struct employee_t *employees = NULL;
+	
+	int opt = 0;
 
-	while ((opt = getopt(argc, argv, "nf:")) != -1) {
+	bool stat = false;
+	bool add = false;
+	bool new_file = false;
+	bool list = false;
+
+	char *add_string = NULL;
+	char *file_path = NULL;
+
+	while ((opt = getopt(argc, argv, "nsla:f:")) != -1) {
 		switch (opt) {
 			case 'n':
 				new_file = true;
+				break;
+			case 's':
+				stat = true;
+				break;
+			case 'a':
+				add = true;
+				add_string = optarg;
+				break;
+			case 'l':
+				list = true;
 				break;
 			case 'f':
 				file_path = optarg;
@@ -36,11 +53,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	//FLAG: FILE PATH
 	if (file_path == NULL) {
 		print_usage(argv);
 		return STATUS_ERROR;
 	}
 
+	//FLAG: NEW FILE
 	if (new_file) {
 		dbfd = create_db_file(file_path);
 		if (dbfd == -1) {
@@ -52,8 +71,6 @@ int main(int argc, char *argv[])
 			printf("Failed to create database header\n");
 			return STATUS_ERROR;
 		}
-		output_file(dbfd, dbheader);
-
 	} else {
 		dbfd = open_db_file(file_path);
 		if (dbfd == -1) {
@@ -64,15 +81,46 @@ int main(int argc, char *argv[])
 			printf("Error validating dbheader\n");
 			return STATUS_ERROR;
 		}
+	}
 
+	if(read_employees(dbfd, dbheader, &employees) != STATUS_SUCCESS) {
+		printf("Failed to read employees!\n");
+		return STATUS_ERROR;
 	}
 	
-	// Placeholder functionality
-	printf("dbfd = %d\n", dbfd);
+	//FLAG: ADD
+	if (add) {
+		dbheader->count++;
+		employees = realloc(employees, dbheader->count*sizeof(struct employee_t));
+		if (employees == NULL) {
+			printf("realloc failed\n");
+			perror("realloc");
+			return STATUS_ERROR;
+		}
+		if (add_employee(add_string, dbheader, employees) != STATUS_SUCCESS) {
+			printf("Failed to add employee.\n");
+			return STATUS_ERROR;
+		}
+	}
+
+	if (list) {
+		if (list_employees(dbheader, employees) != STATUS_SUCCESS) {
+			printf("Failed to list employees.\n");
+			return STATUS_ERROR;
+		}
+	}
+
+	//FLAG: STAT
+	if (stat) {
+		printf("dbfd = %d\n", dbfd);
+		printf("newFile: %d\n", new_file);
+		printf("filePath: %s\n", file_path);
+	}
+
+	//EXIT
+	output_file(dbfd, dbheader, employees);
 	close(dbfd);
 	free(dbheader);
-	printf("newFile: %d\n", new_file);
-	printf("filePath: %s\n", file_path);
-
-	return 0;
+	free(employees);
+	return STATUS_SUCCESS;
 }
