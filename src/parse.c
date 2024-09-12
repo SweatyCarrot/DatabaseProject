@@ -113,7 +113,7 @@ int add_employee(char *add_string, struct dbheader_t *dbheader, struct employee_
 	char *hours = strtok(NULL, ",");
 	strncpy(employees[dbheader->count-1].name, name, sizeof(employees[dbheader->count-1].name));
 	strncpy(employees[dbheader->count-1].address, address, sizeof(employees[dbheader->count-1].address));
-	//TODO: Make this safer?
+	//TODO: Error handle atoi()?
 	employees[dbheader->count-1].hours = atoi(hours);
 	
 	printf("Added employee\n");
@@ -130,8 +130,25 @@ int list_employees(struct dbheader_t *dbheader, struct employee_t *employees)
 
 	int i;
 	for (i = 0; i < dbheader->count; i++) {
-		printf("Employee %d - Name: %s\t| Address: %s\t| Hours: %d\n", i+1, employees[i].name, employees[i].address, employees[i].hours);
+		printf("Employee %d\n", i+1);
+		printf("\tName: %s\n",employees[i].name);
+		printf("\tAddress: %s\n", employees[i].address);
+		printf("\tHours: %d\n", employees[i].hours);
+
+		// Legacy display: printf("Employee %d - Name: %s\t| Address: %s\t| Hours: %d\n", i+1, employees[i].name, employees[i].address, employees[i].hours);
 	}
+	return STATUS_SUCCESS;
+}
+
+int update_hours(char *update_string, struct employee_t *employees)
+{
+	//TODO: Handle errors from atoi()?
+	int empnum = atoi(strtok(update_string, ","));
+	int hours = atoi(strtok(NULL, ","));
+	
+	printf("Employee: %d | Hours: %d\n", empnum, hours);
+	employees[empnum-1].hours = hours;
+
 	return STATUS_SUCCESS;
 }
 

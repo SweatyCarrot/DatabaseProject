@@ -1,3 +1,6 @@
+//TODO: Update employee hours, Delete employee
+
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <getopt.h>
@@ -26,11 +29,13 @@ int main(int argc, char *argv[])
 	bool add = false;
 	bool new_file = false;
 	bool list = false;
+	bool update = false;
 
 	char *add_string = NULL;
 	char *file_path = NULL;
+	char *update_string = NULL;
 
-	while ((opt = getopt(argc, argv, "nsla:f:")) != -1) {
+	while ((opt = getopt(argc, argv, "nslu:a:f:")) != -1) {
 		switch (opt) {
 			case 'n':
 				new_file = true;
@@ -38,12 +43,16 @@ int main(int argc, char *argv[])
 			case 's':
 				stat = true;
 				break;
+			case 'l':
+				list = true;
+				break;
+			case 'u':
+				update = true;
+				update_string = optarg;
+				break;
 			case 'a':
 				add = true;
 				add_string = optarg;
-				break;
-			case 'l':
-				list = true;
 				break;
 			case 'f':
 				file_path = optarg;
@@ -83,6 +92,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	//Read employees from disk into struct array
 	if(read_employees(dbfd, dbheader, &employees) != STATUS_SUCCESS) {
 		printf("Failed to read employees!\n");
 		return STATUS_ERROR;
@@ -103,6 +113,15 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	//FLAG: UPDATE
+	if (update) {
+		if(update_hours(update_string, employees) != STATUS_SUCCESS) {
+			printf("Update hours failed\n");
+			return STATUS_ERROR;
+		}
+	}
+
+	//FLAG: LIST
 	if (list) {
 		if (list_employees(dbheader, employees) != STATUS_SUCCESS) {
 			printf("Failed to list employees.\n");
@@ -119,6 +138,7 @@ int main(int argc, char *argv[])
 
 	//EXIT
 	output_file(dbfd, dbheader, employees);
+	//TODO: Should probably turn this into a function and call it at any exit path.
 	close(dbfd);
 	free(dbheader);
 	free(employees);
