@@ -30,12 +30,14 @@ int main(int argc, char *argv[])
 	bool new_file = false;
 	bool list = false;
 	bool update = false;
+	bool delete = false;
 
 	char *add_string = NULL;
 	char *file_path = NULL;
 	char *update_string = NULL;
+	char *delete_string = NULL;
 
-	while ((opt = getopt(argc, argv, "nslu:a:f:")) != -1) {
+	while ((opt = getopt(argc, argv, "nsld:u:a:f:")) != -1) {
 		switch (opt) {
 			case 'n':
 				new_file = true;
@@ -45,6 +47,10 @@ int main(int argc, char *argv[])
 				break;
 			case 'l':
 				list = true;
+				break;
+			case 'd':
+				delete = true;
+				delete_string = optarg;
 				break;
 			case 'u':
 				update = true;
@@ -96,6 +102,12 @@ int main(int argc, char *argv[])
 	if(read_employees(dbfd, dbheader, &employees) != STATUS_SUCCESS) {
 		printf("Failed to read employees!\n");
 		return STATUS_ERROR;
+	}
+	
+	//FLAG: DELETE
+	if (delete) {
+		dbheader->count--;
+		//DELETE EMPLOYEE FUNCTIONALITY
 	}
 	
 	//FLAG: ADD
