@@ -1,5 +1,4 @@
-//TODO: Update employee hours, Delete employee
-
+//TODO: Update print_usage() and organize this file. Improve stat flag. 
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -107,7 +106,11 @@ int main(int argc, char *argv[])
 	//FLAG: DELETE
 	if (delete) {
 		dbheader->count--;
-		//DELETE EMPLOYEE FUNCTIONALITY
+		if (delete_employee(delete_string, dbheader, employees) != STATUS_SUCCESS) {
+			printf("Failed to delete employee.\n");
+			return STATUS_ERROR;
+		}
+		employees = realloc(employees, dbheader->count*sizeof(struct employee_t));
 	}
 	
 	//FLAG: ADD
@@ -127,7 +130,7 @@ int main(int argc, char *argv[])
 
 	//FLAG: UPDATE
 	if (update) {
-		if(update_hours(update_string, employees) != STATUS_SUCCESS) {
+		if(update_hours(update_string, dbheader, employees) != STATUS_SUCCESS) {
 			printf("Update hours failed\n");
 			return STATUS_ERROR;
 		}

@@ -69,6 +69,7 @@ int validate_dbheader(int fd, struct dbheader_t **dbheaderOut)
 	struct stat dbstat = {0};
 	fstat(fd, &dbstat);
 	if (header->filesize != dbstat.st_size) {
+		printf("Header size: %d\nfstat() size: %ld\n", header->filesize, dbstat.st_size);
 		printf("File size difference. DB is likely corrupted.\n");
 		free(header);
 		return STATUS_ERROR;
@@ -113,7 +114,6 @@ int add_employee(char *add_string, struct dbheader_t *dbheader, struct employee_
 	char *hours = strtok(NULL, ",");
 	strncpy(employees[dbheader->count-1].name, name, sizeof(employees[dbheader->count-1].name));
 	strncpy(employees[dbheader->count-1].address, address, sizeof(employees[dbheader->count-1].address));
-	//TODO: Error handle atoi()?
 	employees[dbheader->count-1].hours = atoi(hours);
 	
 	printf("Added employee\n");
@@ -140,15 +140,40 @@ int list_employees(struct dbheader_t *dbheader, struct employee_t *employees)
 	return STATUS_SUCCESS;
 }
 
-int update_hours(char *update_string, struct employee_t *employees)
+int update_hours(char *update_string, struct dbheader_t *dbheader, struct employee_t *employees)
 {
-	//TODO: Handle errors from atoi()?
 	int empnum = atoi(strtok(update_string, ","));
 	int hours = atoi(strtok(NULL, ","));
 	
+	if (empnum < 1 || empnum > dbheader->count) {
+		printf("Please provide a real employee number.\n");
+		return STATUS_ERROR;
+	}
+
 	printf("Employee: %d | Hours: %d\n", empnum, hours);
 	employees[empnum-1].hours = hours;
 
+	return STATUS_SUCCESS;
+}
+
+int delete_employee(char *delete_string, struct dbheader_t *dbheader, struct employee_t *employees)
+{
+	int empnum = atoi(delete_string);
+
+	if (empnum < 1 || empnum > dbheader->count) {
+		printf("Please provide a real employee number.\n");
+		return STATUS_ERROR;
+	}
+
+	empnum-1;
+	/*empnum-1 is used because list_employees() one-indexes the employee list.
+	 *Therefore, the user's perceived employee num will always be one greater than
+	 *the employee's actual num in the struct array.*/
+	for (;empnum < dbheader->count; empnum++) {
+		strncpy(employees[empnum].name, employees[empnum+1].name, sizeof(employees[empnum+1].name));
+		strncpy(employees[empnum].address, employees[empnum+1].address, sizeof(employees[empnum+1].address));
+		employees[empnum].hours = employees[empnum+1].hours;
+	}
 	return STATUS_SUCCESS;
 }
 
@@ -160,6 +185,7 @@ void output_file(int fd, struct dbheader_t *header, struct employee_t *employees
 	}
 
 	int real_count = header->count;
+	int real_filesize = sizeof(struct dbheader_t) + (sizeof(struct employee_t) * real_count);
 
 	header->sig = htonl(header->sig);
 	header->version = htons(header->version);
@@ -188,6 +214,7 @@ void output_file(int fd, struct dbheader_t *header, struct employee_t *employees
 	for(i = 0; i < real_count; ++i) {
 		employees[i].hours = htonl(employees[i].hours);
 		write(fd, &employees[i], sizeof(struct employee_t));
+		ftruncate(fd, real_filesize);
 	}
 
 	return;
