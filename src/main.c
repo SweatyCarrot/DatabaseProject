@@ -18,49 +18,65 @@ void print_usage(char *argv[])
 
 int main(int argc, char *argv[])
 {
-	int dbfd = -1;
-	struct dbheader_t *dbheader = NULL;
-	struct employee_t *employees = NULL;
 	
-	int opt = 0;
 
-	bool stat = false;
-	bool add = false;
+	//FLAGS AND COMMAND LINE ARGS
+	int opt = 0;
+	int opt_index = 0;
+
+	static struct option long_options[] =
+	{
+		{"new-file", no_argument, 0, 'n'},
+		{"file", required_argument, 0, 'f'},
+		{"list", no_argument, 0, 'l'},
+		{"add", required_argument, 0, 'a'},
+		{"update", required_argument, 0, 'u'},
+		{"delete", required_argument, 0, 'd'},
+		{"stat", no_argument, 0, 's'},
+		{0, 0, 0, 0}
+	};
+	
 	bool new_file = false;
 	bool list = false;
+	bool add = false;
 	bool update = false;
 	bool delete = false;
+	bool stat = false;
 
-	char *add_string = NULL;
 	char *file_path = NULL;
+	char *add_string = NULL;
 	char *update_string = NULL;
 	char *delete_string = NULL;
 
-	while ((opt = getopt(argc, argv, "nsld:u:a:f:")) != -1) {
+	int dbfd = -1;
+	struct dbheader_t *dbheader = NULL;
+	struct employee_t *employees = NULL;
+
+	while ((opt = getopt_long(argc, argv, "nsld:u:a:f:", long_options, &opt_index)) != -1) {
 		switch (opt) {
 			case 'n':
 				new_file = true;
 				break;
-			case 's':
-				stat = true;
+			case 'f':
+				file_path = optarg;
 				break;
 			case 'l':
 				list = true;
-				break;
-			case 'd':
-				delete = true;
-				delete_string = optarg;
-				break;
-			case 'u':
-				update = true;
-				update_string = optarg;
 				break;
 			case 'a':
 				add = true;
 				add_string = optarg;
 				break;
-			case 'f':
-				file_path = optarg;
+			case 'u':
+				update = true;
+				update_string = optarg;
+				break;
+			case 'd':
+				delete = true;
+				delete_string = optarg;
+				break;
+			case 's':
+				stat = true;
 				break;
 			default:
 				return STATUS_ERROR;
