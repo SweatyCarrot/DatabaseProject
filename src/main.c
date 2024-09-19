@@ -12,7 +12,14 @@
 
 void print_usage(char *argv[])
 {
-	printf("Usage: %s [-n] new file? [-f <file_path>] (required)\n", argv[0]);
+	printf("Usage %s:\n", argv[0]);
+	printf("\t[-f (--file) <file_path>] | Required. Specify path of database file\n");
+	printf("\t[-n (--new-file)] | Create a new database file at path specified in --file\n");
+	printf("\t[-l (--list)] | List employees in database\n");
+	printf("\t[-a (--add) <\"{name},{address},{hours}\">] | Add a new employee\n");
+	printf("\t[-u (--update) <\"{employee_num},{new_hours}\">] | Update the specified employee's hours\n");
+	printf("\t[-d (--delete) <\"{employee_num}\">] | Delete the specified employee\n");
+	printf("\t[-s (--stat)] | Print information about database\n");
 	return;
 }
 
@@ -79,6 +86,7 @@ int main(int argc, char *argv[])
 				stat = true;
 				break;
 			default:
+				print_usage(argv);
 				return STATUS_ERROR;
 		}
 	}
