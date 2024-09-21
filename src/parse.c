@@ -112,6 +112,12 @@ int add_employee(char *add_string, struct dbheader_t *dbheader, struct employee_
 	char *name = strtok(add_string, ",");
 	char *address = strtok(NULL, ",");
 	char *hours = strtok(NULL, ",");
+	
+	if (name == NULL | address == NULL | hours == NULL) {
+		printf("Make sure your add string contains enough parameters.\n");
+		return STATUS_ERROR;
+	}
+
 	strncpy(employees[dbheader->count-1].name, name, sizeof(employees[dbheader->count-1].name));
 	strncpy(employees[dbheader->count-1].address, address, sizeof(employees[dbheader->count-1].address));
 	employees[dbheader->count-1].hours = atoi(hours);
@@ -142,9 +148,22 @@ int list_employees(struct dbheader_t *dbheader, struct employee_t *employees)
 
 int update_hours(char *update_string, struct dbheader_t *dbheader, struct employee_t *employees)
 {
-	int empnum = atoi(strtok(update_string, ","));
-	int hours = atoi(strtok(NULL, ","));
+	char *str_empnum = strtok(update_string, ",");
+	char *str_hours = strtok(NULL, ",");
+
+	if (str_empnum == NULL | str_hours == NULL) {
+		printf("Make sure your update string contains enough parameters.\n");
+		return STATUS_ERROR;
+	}
+
+	int empnum = atoi(str_empnum);
+	int hours = atoi(str_hours);
 	
+	if (empnum == 0) {
+		printf("Invalid update string\n");
+		return STATUS_ERROR;
+	}
+
 	if (empnum < 1 || empnum > dbheader->count) {
 		printf("Please provide a real employee number.\n");
 		return STATUS_ERROR;

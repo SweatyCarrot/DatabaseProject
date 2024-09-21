@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -7,6 +8,7 @@
 
 #include "file.h"
 #include "common.h"
+#include "parse.h"
 
 int create_db_file(char *file_name)
 {
@@ -35,4 +37,11 @@ int open_db_file(char *file_name)
 	}
 
 	return fd;
+}
+
+void exit_program(int fd, struct dbheader_t *dbheader, struct employee_t *employees) {
+	close(fd);
+	free(dbheader);
+	free(employees);
+	return;
 }

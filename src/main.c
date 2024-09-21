@@ -1,4 +1,4 @@
-//TODO: Update print_usage() and organize this file. Improve stat flag. 
+//TODO: Add --help flag. Improve --stat flag. 
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -25,8 +25,12 @@ void print_usage(char *argv[])
 
 int main(int argc, char *argv[])
 {
-	
 
+	//STRUCTS AND FILE DESCRIPTOR
+	int dbfd = -1;
+	struct dbheader_t *dbheader = NULL;
+	struct employee_t *employees = NULL;
+	
 	//FLAGS AND COMMAND LINE ARGS
 	int opt = 0;
 	int opt_index = 0;
@@ -54,10 +58,6 @@ int main(int argc, char *argv[])
 	char *add_string = NULL;
 	char *update_string = NULL;
 	char *delete_string = NULL;
-
-	int dbfd = -1;
-	struct dbheader_t *dbheader = NULL;
-	struct employee_t *employees = NULL;
 
 	while ((opt = getopt_long(argc, argv, "nsld:u:a:f:", long_options, &opt_index)) != -1) {
 		switch (opt) {
@@ -102,21 +102,25 @@ int main(int argc, char *argv[])
 		dbfd = create_db_file(file_path);
 		if (dbfd == -1) {
 			printf("Error creating database file\n");
+			exit_program(dbfd, dbheader, employees);
 			return STATUS_ERROR;
 		}
 		
 		if (create_dbheader(&dbheader) == STATUS_ERROR) {
 			printf("Failed to create database header\n");
+			exit_program(dbfd, dbheader, employees);
 			return STATUS_ERROR;
 		}
 	} else {
 		dbfd = open_db_file(file_path);
 		if (dbfd == -1) {
 			printf("Error opening database file. If this is your first time running the program, add -n.\n");
+			exit_program(dbfd, dbheader, employees);
 			return STATUS_ERROR;
 		}
 		if (validate_dbheader(dbfd, &dbheader) == STATUS_ERROR) {
 			printf("Error validating dbheader\n");
+			exit_program(dbfd, dbheader, employees);
 			return STATUS_ERROR;
 		}
 	}
@@ -124,6 +128,7 @@ int main(int argc, char *argv[])
 	//Read employees from disk into struct array
 	if(read_employees(dbfd, dbheader, &employees) != STATUS_SUCCESS) {
 		printf("Failed to read employees!\n");
+		exit_program(dbfd, dbheader, employees);
 		return STATUS_ERROR;
 	}
 	
@@ -132,6 +137,7 @@ int main(int argc, char *argv[])
 		dbheader->count--;
 		if (delete_employee(delete_string, dbheader, employees) != STATUS_SUCCESS) {
 			printf("Failed to delete employee.\n");
+			exit_program(dbfd, dbheader, employees);
 			return STATUS_ERROR;
 		}
 		employees = realloc(employees, dbheader->count*sizeof(struct employee_t));
@@ -144,10 +150,12 @@ int main(int argc, char *argv[])
 		if (employees == NULL) {
 			printf("realloc failed\n");
 			perror("realloc");
+			exit_program(dbfd, dbheader, employees);
 			return STATUS_ERROR;
 		}
 		if (add_employee(add_string, dbheader, employees) != STATUS_SUCCESS) {
 			printf("Failed to add employee.\n");
+			exit_program(dbfd, dbheader, employees);
 			return STATUS_ERROR;
 		}
 	}
@@ -156,6 +164,7 @@ int main(int argc, char *argv[])
 	if (update) {
 		if(update_hours(update_string, dbheader, employees) != STATUS_SUCCESS) {
 			printf("Update hours failed\n");
+			exit_program(dbfd, dbheader, employees);
 			return STATUS_ERROR;
 		}
 	}
@@ -164,12 +173,17 @@ int main(int argc, char *argv[])
 	if (list) {
 		if (list_employees(dbheader, employees) != STATUS_SUCCESS) {
 			printf("Failed to list employees.\n");
+			exit_program(dbfd, dbheader, employees);
 			return STATUS_ERROR;
 		}
 	}
 
 	//FLAG: STAT
 	if (stat) {
+		//Stats for <file>
+		//DB Version
+		//DB Size
+		//Count of employees
 		printf("dbfd = %d\n", dbfd);
 		printf("newFile: %d\n", new_file);
 		printf("filePath: %s\n", file_path);
@@ -177,9 +191,6 @@ int main(int argc, char *argv[])
 
 	//EXIT
 	output_file(dbfd, dbheader, employees);
-	//TODO: Should probably turn this into a function and call it at any exit path.
-	close(dbfd);
-	free(dbheader);
-	free(employees);
+	exit_program(dbfd, dbheader, employees);
 	return STATUS_SUCCESS;
 }
