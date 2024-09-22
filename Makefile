@@ -11,6 +11,8 @@ run: clean default
 default: $(TARGET)
 
 clean:
+	mkdir -p ./obj
+	mkdir -p ./bin
 	rm -f obj/*.o
 	rm -f bin/*
 	rm -f *.db
@@ -20,3 +22,4 @@ $(TARGET): $(OBJ)
 
 obj/%.o : src/%.c
 	gcc -g -c $< -o $@ -Iinclude
+

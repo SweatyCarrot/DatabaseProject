@@ -114,7 +114,7 @@ int add_employee(char *add_string, struct dbheader_t *dbheader, struct employee_
 	char *hours = strtok(NULL, ",");
 	
 	if (name == NULL | address == NULL | hours == NULL) {
-		printf("Make sure your add string contains enough parameters.\n");
+		printf("Make sure your add string is surrounded in quotes and contains enough parameters.\n");
 		return STATUS_ERROR;
 	}
 
@@ -152,7 +152,7 @@ int update_hours(char *update_string, struct dbheader_t *dbheader, struct employ
 	char *str_hours = strtok(NULL, ",");
 
 	if (str_empnum == NULL | str_hours == NULL) {
-		printf("Make sure your update string contains enough parameters.\n");
+		printf("Make sure your update string is surrounded in quotes and contains enough parameters.\n");
 		return STATUS_ERROR;
 	}
 
