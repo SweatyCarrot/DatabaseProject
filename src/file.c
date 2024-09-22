@@ -40,7 +40,9 @@ int open_db_file(char *file_name)
 }
 
 void exit_program(int fd, struct dbheader_t *dbheader, struct employee_t *employees) {
-	close(fd);
+	if (fd != -1) {
+		close(fd);
+	}
 	free(dbheader);
 	free(employees);
 	return;
