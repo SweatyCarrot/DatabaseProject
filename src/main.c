@@ -20,6 +20,7 @@ void print_usage(char *argv[])
 	printf("\t[-u (--update) <\"{employee_num},{new_hours}\">] | Update the specified employee's hours\n");
 	printf("\t[-d (--delete) <\"{employee_num}\">] | Delete the specified employee\n");
 	printf("\t[-s (--stat)] | Print information about database\n");
+	printf("\t[-h (--help)] | Display this message\n");
 	return;
 }
 
@@ -44,6 +45,7 @@ int main(int argc, char *argv[])
 		{"update", required_argument, 0, 'u'},
 		{"delete", required_argument, 0, 'd'},
 		{"stat", no_argument, 0, 's'},
+		{"help", no_argument, 0, 'h'},
 		{0, 0, 0, 0}
 	};
 	
@@ -59,7 +61,7 @@ int main(int argc, char *argv[])
 	char *update_string = NULL;
 	char *delete_string = NULL;
 
-	while ((opt = getopt_long(argc, argv, "nsld:u:a:f:", long_options, &opt_index)) != -1) {
+	while ((opt = getopt_long(argc, argv, "nshld:u:a:f:", long_options, &opt_index)) != -1) {
 		switch (opt) {
 			case 'n':
 				new_file = true;
@@ -85,6 +87,10 @@ int main(int argc, char *argv[])
 			case 's':
 				stat = true;
 				break;
+			case 'h':
+				printf("Help requested. Printing usage and exiting...\n");
+				print_usage(argv);
+				return STATUS_SUCCESS;
 			default:
 				print_usage(argv);
 				return STATUS_ERROR;
