@@ -184,7 +184,7 @@ int delete_employee(char *delete_string, struct dbheader_t *dbheader, struct emp
 		return STATUS_ERROR;
 	}
 
-	empnum-1;
+	empnum--;
 	/*empnum-1 is used because list_employees() one-indexes the employee list.
 	 *Therefore, the user's perceived employee num will always be one greater than
 	 *the employee's actual num in the struct array.*/
