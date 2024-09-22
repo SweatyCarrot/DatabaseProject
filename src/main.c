@@ -5,6 +5,8 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <time.h>
 
 #include "common.h"
 #include "file.h"
@@ -186,13 +188,13 @@ int main(int argc, char *argv[])
 
 	//FLAG: STAT
 	if (stat) {
-		//Stats for <file>
-		//DB Version
-		//DB Size
-		//Count of employees
-		printf("dbfd = %d\n", dbfd);
-		printf("newFile: %d\n", new_file);
-		printf("filePath: %s\n", file_path);
+		struct stat dbstat = {0};
+		fstat(dbfd, &dbstat);
+		printf("Stats for %s\n", file_path);
+		printf("\tEmployee Count: %d\n", dbheader->count);
+		printf("\tDatabase Version: %d\n", dbheader->version);
+		printf("\tDatabase Size: %ld bytes\n", dbstat.st_size);
+		printf("\tLast Modified: %s\n", ctime(&dbstat.st_mtime));
 	}
 
 	//EXIT
